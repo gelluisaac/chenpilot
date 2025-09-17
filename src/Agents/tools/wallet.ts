@@ -1,4 +1,4 @@
-import { Account, RpcProvider, Contract } from "starknet";
+import { Account, RpcProvider, Contract, uint256 } from "starknet";
 import accountsData from "../../Auth/accounts.json";
 import tokenAbi from "../../abis/token.json";
 import {
@@ -8,7 +8,11 @@ import {
 } from "../../constants/tokenaddresses";
 import { BaseTool } from "./base/BaseTool";
 import { ToolMetadata, ToolResult } from "../registry/ToolMetadata";
-
+const tokensMap: Record<supportedTokens, string> = {
+  DAI: DAITokenAddress,
+  STRK: STRKTokenAddress,
+  ETH: ETHTokenAddress,
+};
 interface AccountData {
   userId: string;
   privateKey: string;
@@ -27,6 +31,7 @@ interface BalancePayload {
 interface TransferPayload {
   to: string;
   amount: number;
+  token?: "STRK" | "ETH";
 }
 
 interface AddressPayload {
@@ -79,7 +84,7 @@ export class WalletTool extends BaseTool {
     super();
     this.accounts = accountsData as AccountData[];
     this.provider = new RpcProvider({
-      nodeUrl: "https://docs-demo.strk-sepolia.quiknode.pro/rpc/v0_7",
+      nodeUrl: "https://docs-demo.strk-sepolia.quiknode.pro/rpc/v0_8",
     });
   }
 
@@ -91,6 +96,7 @@ export class WalletTool extends BaseTool {
 
   private getStarkAccount(userId: string): Account {
     const accountData = this.getAccount(userId);
+
     return new Account(
       this.provider,
       accountData.precalculatedAddress,
@@ -126,19 +132,14 @@ export class WalletTool extends BaseTool {
     try {
       console.log(payload);
       const accountData = this.getAccount(userId);
-      const acct = await this.getStarkAccount(userId);
-      const tokensMap: Record<supportedTokens, string> = {
-        DAI: DAITokenAddress,
-        STRK: STRKTokenAddress,
-        ETH: ETHTokenAddress,
-      };
+      const acct = this.getStarkAccount(userId);
+
       const contractAddress = tokensMap[payload.token];
-      if(!contractAddress)throw new Error('invalid token ')
+      if (!contractAddress) throw new Error("invalid token ");
       const contract = new Contract(tokenAbi, contractAddress, acct);
       const balance = await contract.balanceOf(
         accountData.precalculatedAddress
       );
-  
 
       return this.createSuccessResult("wallet_balance", {
         balance: `${(Number(balance.balance.toString()) / 10 ** 18).toFixed(
@@ -163,15 +164,16 @@ export class WalletTool extends BaseTool {
   ): Promise<ToolResult> {
     try {
       const starkAccount = this.getStarkAccount(userId);
-
-      const tx = await starkAccount.execute(
-        {
-          contractAddress: payload.to,
-          entrypoint: "transfer",
-          calldata: [payload.amount],
-        },
-        undefined
-      );
+      const tokenAddress = payload.token
+        ? tokensMap[payload.token]
+        : STRKTokenAddress;
+      console.log(tokenAddress,'ht')
+      const amount = uint256.bnToUint256(payload.amount * 10 ** 18);
+      const tx = await starkAccount.execute({
+        contractAddress: tokenAddress,
+        entrypoint: "transfer",
+        calldata: [payload.to, amount.low, amount.high],
+      });
 
       await starkAccount.waitForTransaction(tx.transaction_hash);
 
