@@ -25,9 +25,10 @@ export class ToolAutoDiscovery {
 
       const { swapTool } = await import("../tools/swap");
       toolRegistry.register(swapTool);
-
       const { metaTool } = await import("../tools/meta");
       toolRegistry.register(metaTool);
+      const { contactTool } = await import("../tools/contact");
+      toolRegistry.register(contactTool);
       // todo
       // await this.discoverToolsFromDirectory();
 

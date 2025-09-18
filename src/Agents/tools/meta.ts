@@ -43,6 +43,7 @@ export class MetaTool extends BaseTool {
             "Get wallet address",
             "Swap assets",
             "Provide agent info (name, version, capabilities)",
+            "Create delete and edit contacts"
           ],
         });
 

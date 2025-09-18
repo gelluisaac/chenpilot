@@ -1,6 +1,7 @@
 import { Account, RpcProvider, Contract, uint256 } from "starknet";
 import accountsData from "../../Auth/accounts.json";
 import tokenAbi from "../../abis/token.json";
+import { container } from "tsyringe";
 import {
   STRKTokenAddress,
   ETHTokenAddress,
@@ -8,11 +9,14 @@ import {
 } from "../../constants/tokenaddresses";
 import { BaseTool } from "./base/BaseTool";
 import { ToolMetadata, ToolResult } from "../registry/ToolMetadata";
+import ContactService from "../../Contacts/contact.service";
+import config from "../../config/config";
 const tokensMap: Record<supportedTokens, string> = {
   DAI: DAITokenAddress,
   STRK: STRKTokenAddress,
   ETH: ETHTokenAddress,
 };
+
 interface AccountData {
   userId: string;
   privateKey: string;
@@ -32,10 +36,6 @@ interface TransferPayload {
   to: string;
   amount: number;
   token?: "STRK" | "ETH";
-}
-
-interface AddressPayload {
-  // No parameters needed for getting address
 }
 
 export class WalletTool extends BaseTool {
@@ -79,12 +79,12 @@ export class WalletTool extends BaseTool {
 
   private accounts: AccountData[];
   private provider: RpcProvider;
-
+  private contactService = container.resolve(ContactService);
   constructor() {
     super();
     this.accounts = accountsData as AccountData[];
     this.provider = new RpcProvider({
-      nodeUrl: "https://docs-demo.strk-sepolia.quiknode.pro/rpc/v0_8",
+      nodeUrl: config.node_url,
     });
   }
 
@@ -167,7 +167,10 @@ export class WalletTool extends BaseTool {
       const tokenAddress = payload.token
         ? tokensMap[payload.token]
         : STRKTokenAddress;
-      console.log(tokenAddress,'ht')
+      const isValidContact = await this.contactService.getContactByName(
+        payload.to
+      );
+      if (isValidContact) payload.to = isValidContact.address;
       const amount = uint256.bnToUint256(payload.amount * 10 ** 18);
       const tx = await starkAccount.execute({
         contractAddress: tokenAddress,

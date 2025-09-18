@@ -1,6 +1,8 @@
+import "reflect-metadata";
 import http from "http";
 import app from "./Gateway/api";
 import config from "./config/config";
+import AppDataSource from "./config/Datasource";
 class Server {
   private server: http.Server;
   private port: number;
@@ -12,13 +14,16 @@ class Server {
 
   public async start(): Promise<void> {
     try {
-      const shutdown = () => {
+      const shutdown = async () => {
         console.log("Shutting down gracefully...");
+        await AppDataSource.destroy();
         this.server.close(() => {
           console.log("Server closed");
           process.exit(0);
         });
       };
+      await AppDataSource.initialize();
+      console.log("db connected successfully");
       process.on("SIGTERM", shutdown);
       process.on("SIGINT", shutdown);
 
@@ -44,8 +49,6 @@ class Server {
     }
   }
 }
-
-
 
 (async () => {
   const server = new Server();
