@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 export default {
+  env:process.env.NODE_ENV|| 'development',
   port: 2333,
   apiKey: process.env.ANTHROPIC_API_KEY!,
   node_url: process.env.NODE_URL!,
