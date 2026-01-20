@@ -1,61 +1,45 @@
-# Chen Pilot  
-### AI Agent for Cross-Chain DeFi Operations
+# Chen Pilot - AI Agent for Cross-Chain DeFi Operations
 
-**Chen Pilot** is an intelligent AI agent that enables seamless interaction with multiple blockchain networks and DeFi protocols using natural language commands. It provides a unified interface for managing Bitcoin wallets, Stellar operations, cross-chain swaps, and DeFi lending and borrowing activities.
-
----
-
-## 🚀 Features
-
-- Natural language interaction with blockchain networks  
-- Bitcoin wallet management  
-- Stellar blockchain operations  
-- Cross-chain asset swaps  
-- DeFi lending and borrowing automation  
-- Intelligent workflow planning and execution  
-- Unified state management and structured feedback  
+Chen Pilot is an intelligent AI agent that enables seamless interaction with blockchain networks and DeFi protocols through natural language commands. This agent provides a unified interface for managing Bitcoin wallets, Stellar operations, cross-chain swaps, and DeFi lending/borrowing activities.
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 
-Ensure you have the following installed and configured:
-
-- **Node.js** version 18 or higher  
-- **PostgreSQL** database  
-- Environment variables properly configured (see Configuration section)  
+- Node.js 18+  
+- PostgreSQL database  
+- Environment variables configured (see Configuration section)  
 
 ---
 
 ## 🛠️ Installation
 
-### 1. Clone the repository
+### Clone the repository
 ```bash
 git clone <repository-url>
 cd chenpilot-experimental
 ````
 
-### 2. Install dependencies
+### Install dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Configure environment variables
+### Set up environment variables
 
 ```bash
 cp .env.example .env
+# Edit .env with your configuration
 ```
 
-Edit the `.env` file with your database credentials, API keys, and other required settings.
-
-### 4. Set up the database
+### Set up the database
 
 ```bash
 npm run migration:run
 ```
 
-### 5. Start the development server
+### Start the development server
 
 ```bash
 npm run dev
@@ -63,42 +47,43 @@ npm run dev
 
 ---
 
-## 🧠 Workflow System
+## Workflow System
 
-Chen Pilot uses an intelligent workflow system designed to handle complex DeFi operations efficiently:
+The agent uses an intelligent workflow system that:
 
-1. **Parses Intent** – Understands user intent from natural language commands
-2. **Plans Workflow** – Creates step-by-step execution plans
-3. **Executes Tools** – Runs the appropriate tools in sequence
-4. **Manages State** – Tracks operation status and results
-5. **Provides Feedback** – Returns structured, user-friendly responses
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome!
-
-1. Fork the repository
-2. Create a new feature branch
-3. Make your changes
-4. Add tests where applicable
-5. Submit a pull request
+* **Parses Intent:** Understands natural language commands
+* **Plans Workflow:** Creates step-by-step execution plans
+* **Executes Tools:** Runs appropriate tools in sequence
+* **Manages State:** Tracks operation status and results
+* **Provides Feedback:** Returns structured responses
 
 ---
 
-## 📄 License
+## Contributing
 
-This project is licensed under the **ISC License**.
+* Fork the repository
+* Create a feature branch
+* Make your changes
+* Add tests if applicable
+* Submit a pull request
 
 ---
 
-## 🆘 Support
+## License
 
-If you need help or have questions:
+This project is licensed under the ISC License.
+
+---
+
+## Support
+
+For support and questions:
 
 * Create an issue in the repository
 * Check the API health endpoints
-* Review application logs for error details
+* Review the logs for error details
 
+---
+
+Chen Pilot - Your intelligent gateway to cross-chain DeFi operations
 
