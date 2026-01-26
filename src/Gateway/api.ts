@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import routes from "./routes";
 
 import { authenticate } from "../Auth/auth";
 import { validateQuery } from "../Agents/validationService";
@@ -29,6 +30,8 @@ app.post("/query", async (req, res) => {
 
   res.json({ result });
 });
+
+app.use("/api", routes);
 
 app.use(ErrorHandler);
 

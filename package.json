@@ -14,7 +14,14 @@
     "schema:sync": "npm run typeorm schema:sync -- -d src/config/DataSource.ts",
     "migration:show": "npm run typeorm migration:show -- -d src/config/DataSource.ts",
     "migration:generate": "npm run typeorm migration:generate -- -d src/config/DataSource.ts -p src/migrations/",
-    "build": "tsc"
+    "build": "tsc",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -39,8 +46,5 @@
     "typescript": "^5.7.3"
   },
   "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "jest": "^30.2.0",
-    "ts-jest": "^29.4.6"
   }
 }
