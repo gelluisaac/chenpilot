@@ -1,4 +1,42 @@
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
+
+type StellarNetwork = "testnet" | "public";
+
+// Stellar network configurations
+const STELLAR_NETWORKS: Record<
+  StellarNetwork,
+  {
+    horizonUrl: string;
+    networkPassphrase: string;
+    friendbotUrl: string;
+  }
+> = {
+  testnet: {
+    horizonUrl: "https://horizon-testnet.stellar.org",
+    networkPassphrase: "Test SDF Network ; September 2015",
+    friendbotUrl: "https://friendbot.stellar.org",
+  },
+  public: {
+    horizonUrl: "https://horizon.stellar.org",
+    networkPassphrase: "Public Global Stellar Network ; September 2015",
+    friendbotUrl: "", // No friendbot on mainnet
+  },
+};
+
+// Get Stellar network from environment, default to testnet
+const stellarNetwork: StellarNetwork =
+  (process.env.STELLAR_NETWORK as StellarNetwork) || "testnet";
+
+// Validate network type
+if (stellarNetwork !== "testnet" && stellarNetwork !== "public") {
+  throw new Error(
+    `Invalid STELLAR_NETWORK: ${process.env.STELLAR_NETWORK}. Must be "testnet" or "public"`,
+  );
+}
+
+// Get network configuration
+const stellarConfig = STELLAR_NETWORKS[stellarNetwork];
 
 export default {
   env: process.env.NODE_ENV || "development",
@@ -6,9 +44,11 @@ export default {
   apiKey: process.env.ANTHROPIC_API_KEY!,
   node_url: process.env.NODE_URL!,
   stellar: {
-    horizonUrl: process.env.STELLAR_HORIZON_URL || 'https://horizon-testnet.stellar.org',
-    networkPassphrase: process.env.STELLAR_NETWORK_PASSPHRASE || 'Test SDF Network ; September 2015',
-    network: process.env.STELLAR_NETWORK || 'TESTNET',
+    network: stellarNetwork,
+    horizonUrl: process.env.STELLAR_HORIZON_URL || stellarConfig.horizonUrl,
+    networkPassphrase:
+      process.env.STELLAR_NETWORK_PASSPHRASE || stellarConfig.networkPassphrase,
+    friendbotUrl: stellarConfig.friendbotUrl,
   },
   db: {
     postgres: {
@@ -20,4 +60,3 @@ export default {
     },
   },
 };
-                                                                                                                                                          

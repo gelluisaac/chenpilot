@@ -1,41 +1,43 @@
-import { jest } from '@jest/globals';
+// Jest globals are available after installing @types/jest
+// No import needed for jest global
 
-export const mockStellarSdk: any = {
+export const mockStellarSdk: Record<string, unknown> = {
   Keypair: {
     random: jest.fn(() => ({
-      publicKey: () => 'GD77MOCKPUBLICKEY1234567890',
-      secret: () => 'SABC...MOCKSECRET',
+      publicKey: () => "GD77MOCKPUBLICKEY1234567890",
+      secret: () => "SABC...MOCKSECRET",
     })),
-    fromSecret: jest.fn((secret: string) => ({
-      publicKey: () => 'GD77MOCKPUBLICKEY1234567890',
-      sign: jest.fn().mockReturnValue(Buffer.from('mock_signature')),
+    fromSecret: jest.fn(() => ({
+      publicKey: () => "GD77MOCKPUBLICKEY1234567890",
+      sign: jest.fn().mockReturnValue(Buffer.from("mock_signature")),
     })),
   },
   Horizon: {
     Server: jest.fn().mockImplementation(() => ({
-      // Use "as any" before .mockResolvedValue to stop the 'never' error
-      loadAccount: (jest.fn() as any).mockResolvedValue({
-        id: 'GD77MOCKPUBLICKEY1234567890',
+      loadAccount: jest.fn().mockResolvedValue({
+        id: "GD77MOCKPUBLICKEY1234567890",
         balances: [
-          { asset_type: 'native', balance: '100.0000' },
-          { asset_code: 'USDC', balance: '50.00' }
+          { asset_type: "native", balance: "100.0000" },
+          { asset_code: "USDC", balance: "50.00" },
         ],
-        sequenceNumber: () => '12345',
+        sequenceNumber: () => "12345",
       }),
-      submitTransaction: (jest.fn() as any).mockResolvedValue({ 
-        hash: 'mock_hash_123',
-        ledger: 45678 
+      submitTransaction: jest.fn().mockResolvedValue({
+        hash: "mock_hash_123",
+        ledger: 45678,
       }),
       strictReceivePaths: jest.fn().mockImplementation(() => ({
-        call: (jest.fn() as any).mockResolvedValue({
-          records: [
-            { source_amount: '10.00', source_asset_type: 'native' }
-          ]
-        })
-      }))
-    }))
+        call: jest.fn().mockResolvedValue({
+          records: [{ source_amount: "10.00", source_asset_type: "native" }],
+        }),
+      })),
+    })),
   },
-  Asset: function(this: any, code: string, issuer: string) {
+  Asset: function (
+    this: Record<string, unknown>,
+    code: string,
+    issuer: string,
+  ) {
     this.code = code;
     this.issuer = issuer;
     this.isNative = () => !code;
@@ -48,13 +50,15 @@ export const mockStellarSdk: any = {
     sign: jest.fn().mockReturnThis(),
   })),
   Operation: {
-    payment: jest.fn().mockReturnValue({ type: 'payment' }),
-    pathPaymentStrictReceive: jest.fn().mockReturnValue({ type: 'pathPayment' }),
+    payment: jest.fn().mockReturnValue({ type: "payment" }),
+    pathPaymentStrictReceive: jest
+      .fn()
+      .mockReturnValue({ type: "pathPayment" }),
   },
   Network: {
-    TESTNET: 'Test SDF Network ; September 2015',
+    TESTNET: "Test SDF Network ; September 2015",
   },
 };
 
-jest.mock('@stellar/stellar-sdk', () => mockStellarSdk);
-jest.mock('stellar-sdk', () => mockStellarSdk);
+jest.mock("@stellar/stellar-sdk", () => mockStellarSdk);
+jest.mock("stellar-sdk", () => mockStellarSdk);
