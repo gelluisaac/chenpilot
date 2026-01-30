@@ -1,7 +1,7 @@
 import request from "supertest";
-import app from "../Gateway/api";
-import AppDataSource from "../config/Datasource";
-import { User } from "../Auth/user.entity";
+import app from "../../src/Gateway/api";
+import AppDataSource from "../../src/config/Datasource";
+import { User } from "../../src/Auth/user.entity";
 
 describe("POST /signup", () => {
   beforeEach(async () => {

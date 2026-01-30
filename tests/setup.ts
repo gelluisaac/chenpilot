@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import AppDataSource from "../config/Datasource";
+import AppDataSource from "../src/config/Datasource";
 
 beforeAll(async () => {
   if (!AppDataSource.isInitialized) {

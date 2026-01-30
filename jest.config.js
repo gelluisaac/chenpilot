@@ -1,9 +1,15 @@
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
-  roots: ["<rootDir>/src"],
+  roots: ["<rootDir>"],
   testMatch: ["**/*.test.ts"],
   moduleFileExtensions: ["ts", "js", "json"],
-  setupFilesAfterEnv: ["<rootDir>/src/tests/setup.ts"],
   testTimeout: 30000,
+  setupFilesAfterEnv: [
+    "<rootDir>/tests/stellar.mock.ts",
+    "<rootDir>/tests/setup.ts",
+  ],
+  transform: {
+    "^.+\\.ts$": "ts-jest",
+  },
 };
