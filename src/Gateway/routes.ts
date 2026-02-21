@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
-import { rateLimit } from 'express-rate-limit';
-import helmet from 'helmet';
+import { rateLimit } from "express-rate-limit";
+import helmet from "helmet";
 import AppDataSource from "../config/Datasource";
 import { User } from "../Auth/user.entity";
 import { stellarWebhookService } from "./webhook.service";
@@ -10,6 +10,7 @@ import {
   type TransactionType,
 } from "./transaction.service";
 import logger from "../config/logger";
+import authRoutes from "../Auth/auth.routes";
 
 const router = Router();
 
@@ -21,7 +22,7 @@ router.use(helmet());
 const generalLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
   limit: 100,
-  standardHeaders: 'draft-8',
+  standardHeaders: "draft-8",
   legacyHeaders: false,
   message: { success: false, message: "Too many requests. Please slow down." },
 });
@@ -30,6 +31,9 @@ const generalLimiter = rateLimit({
 router.use(generalLimiter);
 
 // --- ROUTES ---
+
+// Mount auth routes
+router.use("/auth", authRoutes);
 
 // Public webhook endpoint for Stellar funding notifications
 router.post("/webhook/stellar/funding", async (req: Request, res: Response) => {
@@ -177,7 +181,7 @@ router.get(
       // Fetch transaction history
       const result = await transactionHistoryService.getTransactionHistory(
         userId,
-        queryParams,
+        queryParams
       );
 
       return res.status(200).json({
@@ -195,7 +199,7 @@ router.get(
         message,
       });
     }
-  },
+  }
 );
 
 export default router;
