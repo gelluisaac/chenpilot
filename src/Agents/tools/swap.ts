@@ -4,6 +4,7 @@ import * as StellarSdk from "@stellar/stellar-sdk";
 import config from "../../config/config";
 import accountsData from "../../Auth/accounts.json";
 import logger from "../../config/logger";
+import { flashSwapRiskAnalyzer } from "../../services/flashSwapRiskAnalyzer";
 
 interface SwapPayload extends Record<string, unknown> {
   from: string;
@@ -101,6 +102,26 @@ export class SwapTool extends BaseTool<SwapPayload> {
         );
       }
 
+      // Analyze swap risk for sandwich attacks
+      logger.info("Analyzing swap risk", { userId, amount: payload.amount });
+      const riskAnalysis = await flashSwapRiskAnalyzer.analyzeSwapRisk({
+        fromAsset: sourceAsset,
+        toAsset: destAsset,
+        amount: payload.amount,
+      });
+
+      // Notify user of risks
+      if (riskAnalysis.riskLevel === "critical") {
+        return this.createErrorResult(
+          "swap",
+          `CRITICAL RISK: Swap blocked due to high sandwich attack risk (${(riskAnalysis.sandwichAttackRisk * 100).toFixed(1)}%). ${riskAnalysis.warnings.join(". ")}. Recommendations: ${riskAnalysis.recommendations.join(". ")}`
+        );
+      }
+
+      if (riskAnalysis.riskLevel === "high") {
+        logger.warn("High risk swap detected", { userId, riskAnalysis });
+      }
+
       // Get user's Stellar keypair
       const sourceKeypair = this.getStellarAccount(userId);
       const sourcePublicKey = sourceKeypair.publicKey();
@@ -109,7 +130,8 @@ export class SwapTool extends BaseTool<SwapPayload> {
         userId,
         amount: payload.amount,
         from: payload.from,
-        to: payload.to
+        to: payload.to,
+        riskLevel: riskAnalysis.riskLevel,
       });
 
       // Load source account to get sequence number
@@ -153,6 +175,12 @@ export class SwapTool extends BaseTool<SwapPayload> {
         timestamp: new Date().toISOString(),
         ledger: result.ledger,
         successful: result.successful,
+        riskAnalysis: {
+          riskLevel: riskAnalysis.riskLevel,
+          sandwichAttackRisk: riskAnalysis.sandwichAttackRisk,
+          warnings: riskAnalysis.warnings,
+          recommendations: riskAnalysis.recommendations,
+        },
       });
     } catch (error) {
       let errorMessage = "Unknown error";
