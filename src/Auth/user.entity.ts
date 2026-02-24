@@ -41,6 +41,9 @@ export class User {
   @Column({ type: "varchar", default: "XLM" })
   tokenType!: string;
 
+  @Column({ type: "varchar", default: "user" })
+  role!: string;
+
   @Column({ type: "varchar", nullable: true })
   resetTokenHash?: string;
 

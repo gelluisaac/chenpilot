@@ -8,6 +8,7 @@ declare module "express-serve-static-core" {
     user?: {
       userId: string;
       name: string;
+      role: string;
     };
   }
 }
@@ -39,6 +40,7 @@ export async function authenticateToken(
     req.user = {
       userId: payload.userId,
       name: payload.name,
+      role: payload.role,
     };
 
     next();
@@ -68,6 +70,7 @@ export async function optionalAuth(
       req.user = {
         userId: payload.userId,
         name: payload.name,
+        role: payload.role,
       };
     }
 

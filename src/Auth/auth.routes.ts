@@ -32,9 +32,9 @@ router.post("/login", async (req: Request, res: Response) => {
     }
 
     const jwtService = container.resolve(JwtService);
-    const tokens = await jwtService.generateTokenPair(user.id, user.name);
+    const tokens = await jwtService.generateTokenPair(user.id, user.name, user.role);
 
-    logger.info("User logged in", { userId: user.id, name: user.name });
+    logger.info("User logged in", { userId: user.id, name: user.name, role: user.role });
 
     return res.status(200).json({
       success: true,

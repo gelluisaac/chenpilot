@@ -9,6 +9,7 @@ import crypto from "crypto";
 interface TokenPayload {
   userId: string;
   name: string;
+  role: string;
 }
 
 interface TokenPair {
@@ -41,8 +42,8 @@ export default class JwtService {
   /**
    * Generate access and refresh token pair
    */
-  async generateTokenPair(userId: string, name: string): Promise<TokenPair> {
-    const payload: TokenPayload = { userId, name };
+  async generateTokenPair(userId: string, name: string, role: string = "user"): Promise<TokenPair> {
+    const payload: TokenPayload = { userId, name, role };
 
     // Generate access token (short-lived)
     const accessToken = jwt.sign(payload, this.accessTokenSecret, {
@@ -113,7 +114,8 @@ export default class JwtService {
     // Generate new token pair
     const newTokenPair = await this.generateTokenPair(
       tokenEntity.user.id,
-      tokenEntity.user.name
+      tokenEntity.user.name,
+      tokenEntity.user.role
     );
 
     // Mark old token as replaced (for audit trail)

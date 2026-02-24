@@ -13,6 +13,12 @@ import {
 import logger from "../config/logger";
 import authRoutes from "../Auth/auth.routes";
 import { stellarLiquidityTool } from "../Agents/tools/stellarLiquidityTool";
+import { authenticateToken } from "../Auth/auth.middleware";
+import {
+  requireAdmin,
+  requireModerator,
+  requireOwnerOrElevated,
+} from "./middleware/rbac.middleware";
 
 const router = Router();
 
@@ -265,6 +271,8 @@ router.post("/signup", async (req: Request, res: Response) => {
  */
 router.get(
   "/account/:userId/transactions",
+  authenticateToken,
+  requireOwnerOrElevated("userId"),
   async (req: Request, res: Response) => {
     try {
       const { userId } = req.params;
@@ -372,7 +380,7 @@ router.get(
 );
 
 // GET /admin/stats - Internal admin route for CPU and memory usage
-router.get("/admin/stats", (req: Request, res: Response) => {
+router.get("/admin/stats", authenticateToken, requireAdmin, (req: Request, res: Response) => {
   const memUsage = process.memoryUsage();
   const cpuUsage = process.cpuUsage();
 
