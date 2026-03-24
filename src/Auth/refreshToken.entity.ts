@@ -19,6 +19,7 @@ export class RefreshToken {
   token!: string;
 
   @Column({ type: "uuid" })
+  @Index()
   userId!: string;
 
   @ManyToOne(() => User, { onDelete: "CASCADE" })
@@ -26,9 +27,11 @@ export class RefreshToken {
   user!: User;
 
   @Column({ type: "timestamp" })
+  @Index()
   expiresAt!: Date;
 
   @Column({ type: "boolean", default: false })
+  @Index()
   isRevoked!: boolean;
 
   @Column({ type: "varchar", nullable: true })
