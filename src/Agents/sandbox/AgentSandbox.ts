@@ -1,7 +1,12 @@
 import { ToolRegistry } from "../registry/ToolRegistry";
 import { ToolDefinition, ToolPayload } from "../registry/ToolMetadata";
-import { AgentPlanner, PlannerContext, ExecutionPlan } from "../planner/AgentPlanner";
+import {
+  AgentPlanner,
+  PlannerContext,
+  ExecutionPlan,
+} from "../planner/AgentPlanner";
 import { PlanExecutor, ExecutionOptions } from "../planner/PlanExecutor";
+import { toolRegistry as globalToolRegistry } from "../registry/ToolRegistry";
 import { MockToolRegistry } from "./MockToolRegistry";
 import {
   MockToolBehaviour,
@@ -81,7 +86,9 @@ export class AgentSandbox {
     if (!this.isolatedToolRegistry.hasCustomTool(toolName)) {
       this.isolatedToolRegistry.registerCustomTool(toolDef);
     } else {
-      this.isolatedToolRegistry.registerCustomTool(toolDef, { overwrite: true });
+      this.isolatedToolRegistry.registerCustomTool(toolDef, {
+        overwrite: true,
+      });
     }
 
     return this;
@@ -255,16 +262,15 @@ export class AgentSandbox {
     const mockReg = this.mockRegistry;
 
     // Import the global singleton that PlanExecutor uses
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { toolRegistry: globalRegistry } = require("../registry/ToolRegistry") as {
-      toolRegistry: ToolRegistry;
-    };
+    const globalRegistry = globalToolRegistry;
 
     const originalExecute = globalRegistry.executeTool.bind(globalRegistry);
 
     // Stash the original so we can restore it
-    (this as unknown as Record<string, unknown>)["_originalExecuteTool"] = originalExecute;
-    (this as unknown as Record<string, unknown>)["_patchedRegistry"] = globalRegistry;
+    (this as unknown as Record<string, unknown>)["_originalExecuteTool"] =
+      originalExecute;
+    (this as unknown as Record<string, unknown>)["_patchedRegistry"] =
+      globalRegistry;
 
     globalRegistry.executeTool = async (
       toolName: string,
@@ -273,8 +279,16 @@ export class AgentSandbox {
       timeoutMs?: number
     ) => {
       // Route through mock if registered; otherwise fall back to real execution
-      if ((mockReg as unknown as Record<string, unknown>)["mocks"] instanceof Map &&
-          ((mockReg as unknown as Record<string, unknown>)["mocks"] as Map<string, unknown>).has(toolName)) {
+      if (
+        (mockReg as unknown as Record<string, unknown>)["mocks"] instanceof
+          Map &&
+        (
+          (mockReg as unknown as Record<string, unknown>)["mocks"] as Map<
+            string,
+            unknown
+          >
+        ).has(toolName)
+      ) {
         return mockReg.execute(toolName, payload, userId);
       }
       if (this.config.allowUnmocked) {
@@ -289,13 +303,16 @@ export class AgentSandbox {
    * Called automatically by clear().
    */
   restoreRegistry(): void {
-    const original = (this as unknown as Record<string, unknown>)["_originalExecuteTool"];
-    const registry = (this as unknown as Record<string, unknown>)["_patchedRegistry"] as ToolRegistry | undefined;
+    const original = (this as unknown as Record<string, unknown>)[
+      "_originalExecuteTool"
+    ];
+    const registry = (this as unknown as Record<string, unknown>)[
+      "_patchedRegistry"
+    ] as ToolRegistry | undefined;
     if (original && registry) {
       registry.executeTool = original as typeof registry.executeTool;
     }
   }
-
   /**
    * Patch the AgentPlanner to use our isolated registry for tool metadata
    * so the LLM prompt only lists the tools we've registered in the sandbox.

@@ -1,13 +1,19 @@
-import { ToolDefinition, ToolResult, ToolPayload, ToolMetadata } from "../registry/ToolMetadata";
-import { MockToolBehaviour, ToolCall, SandboxConfig } from "./types";
-
-/**
+import {
+  ToolDefinition,
+  ToolResult,
+  ToolPayload,
+  ToolMetadata,
+} from "../registry/ToolMetadata";
+import { MockToolBehaviour, ToolCall, SandboxConfig } from "./types"; /**
  * Isolated tool registry for sandbox testing.
  * Replaces real tool implementations with configurable mock behaviours
  * without touching the global ToolRegistry singleton.
  */
 export class MockToolRegistry {
-  private mocks = new Map<string, { behaviour: MockToolBehaviour; callCount: number }>();
+  private mocks = new Map<
+    string,
+    { behaviour: MockToolBehaviour; callCount: number }
+  >();
   private calls: ToolCall[] = [];
   private config: Required<SandboxConfig>;
 
@@ -33,7 +39,11 @@ export class MockToolRegistry {
   /**
    * Convenience: mock a tool to always succeed with optional data.
    */
-  mockSuccess(toolName: string, data: Record<string, unknown> = {}, message?: string): this {
+  mockSuccess(
+    toolName: string,
+    data: Record<string, unknown> = {},
+    message?: string
+  ): this {
     return this.mock(toolName, { type: "success", data, message });
   }
 
@@ -55,9 +65,10 @@ export class MockToolRegistry {
    * Build a ToolDefinition that wraps the mock behaviour.
    * This can be passed to AgentPlanner / PlanExecutor in tests.
    */
-  buildMockTool(toolName: string, partialMetadata: Partial<ToolMetadata> = {}): ToolDefinition {
-    const registry = this;
-
+  buildMockTool(
+    toolName: string,
+    partialMetadata: Partial<ToolMetadata> = {}
+  ): ToolDefinition {
     const metadata: ToolMetadata = {
       name: toolName,
       description: partialMetadata.description ?? `Mock tool: ${toolName}`,
@@ -69,8 +80,11 @@ export class MockToolRegistry {
 
     return {
       metadata,
-      execute: async (payload: ToolPayload, userId: string): Promise<ToolResult> => {
-        return registry.execute(toolName, payload, userId);
+      execute: async (
+        payload: ToolPayload,
+        userId: string
+      ): Promise<ToolResult> => {
+        return this.execute(toolName, payload, userId);
       },
     };
   }
@@ -78,8 +92,15 @@ export class MockToolRegistry {
   /**
    * Execute a mock tool by name, recording the call and resolving the behaviour.
    */
-  async execute(toolName: string, payload: ToolPayload, userId: string): Promise<ToolResult> {
-    if (this.config.recordCalls && this.calls.length >= this.config.maxToolCalls) {
+  async execute(
+    toolName: string,
+    payload: ToolPayload,
+    userId: string
+  ): Promise<ToolResult> {
+    if (
+      this.config.recordCalls &&
+      this.calls.length >= this.config.maxToolCalls
+    ) {
       throw new Error(
         `Sandbox: max tool calls (${this.config.maxToolCalls}) exceeded`
       );
@@ -109,7 +130,12 @@ export class MockToolRegistry {
     }
 
     const start = Date.now();
-    const result = await this.resolveBehaviour(entry.behaviour, payload, userId, entry);
+    const result = await this.resolveBehaviour(
+      entry.behaviour,
+      payload,
+      userId,
+      entry
+    );
     const durationMs = Date.now() - start;
 
     entry.callCount++;
@@ -169,7 +195,12 @@ export class MockToolRegistry {
 
       case "sequence": {
         const idx = Math.min(entry.callCount, behaviour.responses.length - 1);
-        return this.resolveBehaviour(behaviour.responses[idx], payload, userId, entry);
+        return this.resolveBehaviour(
+          behaviour.responses[idx],
+          payload,
+          userId,
+          entry
+        );
       }
 
       case "fn": {

@@ -1,6 +1,6 @@
-import { ToolDefinition, ToolResult, ToolPayload } from "../registry/ToolMetadata";
-import { ExecutionPlan, PlanStep } from "../planner/AgentPlanner";
-import { ExecutionResult, StepResult } from "../planner/PlanExecutor";
+import { ToolResult, ToolPayload } from "../registry/ToolMetadata";
+import { ExecutionPlan } from "../planner/AgentPlanner";
+import { ExecutionResult } from "../planner/PlanExecutor";
 
 /** Behaviour when a mock tool is called */
 export type MockToolBehaviour =
@@ -8,7 +8,10 @@ export type MockToolBehaviour =
   | { type: "error"; error: string; data?: Record<string, unknown> }
   | { type: "delay"; ms: number; then: MockToolBehaviour }
   | { type: "sequence"; responses: MockToolBehaviour[] }
-  | { type: "fn"; handler: (payload: ToolPayload, userId: string) => MockToolBehaviour };
+  | {
+      type: "fn";
+      handler: (payload: ToolPayload, userId: string) => MockToolBehaviour;
+    };
 
 /** A recorded tool invocation */
 export interface ToolCall {
