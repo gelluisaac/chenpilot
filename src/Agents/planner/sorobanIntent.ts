@@ -3,8 +3,20 @@ import { WorkflowPlan, WorkflowStep } from "../types";
 export const SOROBAN_INVOKE_ACTION = "soroban_invoke";
 
 // Path payment keywords — handled before LLM to reduce latency and cost
-const PATH_PAYMENT_KEYWORDS = ["path payment", "path pay", "multi-hop", "route payment", "find path"];
-const LIQUIDITY_POOL_KEYWORDS = ["pool stats", "pool id", "liquidity pool", "amm pool", "pool apr"];
+const PATH_PAYMENT_KEYWORDS = [
+  "path payment",
+  "path pay",
+  "multi-hop",
+  "route payment",
+  "find path",
+];
+const LIQUIDITY_POOL_KEYWORDS = [
+  "pool stats",
+  "pool id",
+  "liquidity pool",
+  "amm pool",
+  "pool apr",
+];
 
 const SOROBAN_KEYWORDS = [
   "soroban",
