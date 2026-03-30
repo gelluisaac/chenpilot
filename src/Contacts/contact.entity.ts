@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from "typeorm";
 
 @Entity()
@@ -12,9 +13,11 @@ export class Contact {
   id!: string;
 
   @Column({ unique: true, type: "varchar" })
+  @Index()
   name!: string;
 
   @Column({ type: "varchar" })
+  @Index()
   address!: string;
 
   @Column({ type: "varchar", default: "STRK" })
