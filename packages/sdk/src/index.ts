@@ -8,6 +8,7 @@ export * from "./trustline";
 export * from "./rateLimiter";
 export * from "./planVerification";
 export * from "./agentClient";
+export * from "./memos";
 export * from "./soroban";
 export * from "./events";
 export * from "./horizonClient";

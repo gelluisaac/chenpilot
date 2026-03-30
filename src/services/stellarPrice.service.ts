@@ -2,6 +2,7 @@ import * as StellarSdk from "@stellar/stellar-sdk";
 import config from "../config/config";
 import logger from "../config/logger";
 import priceCacheService from "./priceCache.service";
+import { multiHopPathFinder } from "./multiHopPathFinder";
 
 export interface PriceQuote {
   fromAsset: string;
@@ -12,6 +13,11 @@ export interface PriceQuote {
   path?: string[];
   cached: boolean;
   timestamp: number;
+  multiHopAnalysis?: {
+    totalPathsFound: number;
+    bestPathHops: number;
+    efficiency: number;
+  };
 }
 
 export class StellarPriceService {
@@ -186,6 +192,50 @@ export class StellarPriceService {
    */
   async invalidatePrice(fromAsset: string, toAsset: string): Promise<void> {
     await priceCacheService.invalidatePrice(fromAsset, toAsset);
+  }
+
+  /**
+   * Get price with multi-hop path evaluation
+   */
+  async getPriceWithMultiHop(
+    fromAsset: string,
+    toAsset: string,
+    amount: number = 1,
+    maxHops: number = 5
+  ): Promise<PriceQuote> {
+    try {
+      const sourceAsset = this.getAsset(fromAsset);
+      const destAsset = this.getAsset(toAsset);
+
+      const pathResult = await multiHopPathFinder.findOptimalPath(
+        sourceAsset,
+        destAsset,
+        amount.toFixed(7),
+        { maxHops }
+      );
+
+      const destAmount = parseFloat(pathResult.bestPath.destinationAmount);
+      const price = destAmount / amount;
+
+      return {
+        fromAsset,
+        toAsset,
+        price,
+        amount,
+        estimatedOutput: destAmount,
+        path: pathResult.bestPath.route,
+        cached: false,
+        timestamp: Date.now(),
+        multiHopAnalysis: {
+          totalPathsFound: pathResult.allPaths.length,
+          bestPathHops: pathResult.bestPath.hops,
+          efficiency: pathResult.bestPath.efficiency,
+        },
+      };
+    } catch (error) {
+      logger.error("Error fetching multi-hop price:", error);
+      throw error;
+    }
   }
 }
 

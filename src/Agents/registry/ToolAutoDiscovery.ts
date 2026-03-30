@@ -43,7 +43,8 @@ export class ToolAutoDiscovery {
       const { PriceTool } = await import("../tools/price");
       toolRegistry.register(new PriceTool());
 
-      const { liquidityPoolStatsTool } = await import("../tools/liquidityPoolStats");
+      const { liquidityPoolStatsTool } =
+        await import("../tools/liquidityPoolStats");
       toolRegistry.register(liquidityPoolStatsTool);
       // todo
       // await this.discoverToolsFromDirectory();
