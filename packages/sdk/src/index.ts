@@ -16,4 +16,5 @@ export * from "./sequenceManager";
 export * from "./stellarSequenceHelper";
 export * from "./sponsorship";
 export * from "./metadata";
+export * from "./memoUtils";
 
