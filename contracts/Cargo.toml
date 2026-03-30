@@ -6,6 +6,7 @@ members = [
     "liquidity_vault",
     "relayer_slashing",
     "htlc",
+    "btc_relay",
 ]
 resolver = "2"
 
