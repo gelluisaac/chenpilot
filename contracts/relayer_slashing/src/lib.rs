@@ -102,7 +102,7 @@ impl RelayerSlashingContract {
         let token_client = token::Client::new(&env, &config.staking_token);
         token_client.transfer(&env.current_contract_address(), &config.treasury, &slash_amount);
 
-        env.storage().persistent().set(&DataKey::Relayer(relayer), &info);
+        env.storage().persistent().set(&DataKey::Relayer(relayer.clone()), &info);
         
         env.events().publish((symbol_short!("Slashed"), relayer), slash_amount);
     }

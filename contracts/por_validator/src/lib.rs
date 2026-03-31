@@ -1,10 +1,11 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, contractclient, Address, Env, token, symbol_short};
+use soroban_sdk::{contract, contractimpl, contracttype, contractclient, Address, Env, symbol_short};
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReserveData {
     pub balance: i128,
+    pub circulating_supply: i128,
     pub timestamp: u64,
 }
 
@@ -67,13 +68,12 @@ impl PoRValidatorContract {
     pub fn verify_reserves(env: Env) {
         let config: Config = env.storage().instance().get(&DataKey::Config).expect("Not initialized");
         
-        // 1. Fetch total supply of Wrapped BTC from the token contract
-        let token_client = token::Client::new(&env, &config.wbtc_token);
-        let supply = token_client.total_supply();
-        
-        // 2. Fetch off-chain BTC reserve data from the trusted oracle
+        // 1. Fetch total supply and reserve balance from the trusted oracle.
+        // Soroban SEP-41 token interface does not expose total_supply directly;
+        // the PoR oracle is expected to report both circulating supply and BTC reserves.
         let oracle_client = OracleClient::new(&env, &config.oracle);
         let reserve_data = oracle_client.get_reserve_data();
+        let supply = reserve_data.circulating_supply;
         
         // 3. Calculate the maximum allowed supply based on tolerance_bps
         // Allowed = Reserves * (10000 + tolerance) / 10000

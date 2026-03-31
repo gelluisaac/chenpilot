@@ -3,6 +3,9 @@
 use super::*;
 use soroban_sdk::{testutils::Address as _, Bytes, BytesN, Env, Vec};
 
+// Import the crypto sub-contract for test registration
+use btc_relay_crypto::BtcCryptoContract;
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -10,10 +13,23 @@ use soroban_sdk::{testutils::Address as _, Bytes, BytesN, Env, Vec};
 fn setup(env: &Env) -> (Address, Address, BtcRelayContractClient) {
     let admin = Address::generate(env);
     let token = Address::generate(env);
+
+    // Register the crypto sub-contract and the relay contract
+    let crypto_id = env.register(BtcCryptoContract, ());
     let contract_id = env.register(BtcRelayContract, ());
     let client = BtcRelayContractClient::new(env, &contract_id);
-    client.initialize(&admin, &token, &1);
+    client.initialize(&admin, &token, &1, &crypto_id);
     (admin, token, client)
+}
+
+fn setup_with_confirmations(env: &Env, min_confirmations: u32) -> BtcRelayContractClient {
+    let admin = Address::generate(env);
+    let token = Address::generate(env);
+    let crypto_id = env.register(BtcCryptoContract, ());
+    let contract_id = env.register(BtcRelayContract, ());
+    let client = BtcRelayContractClient::new(env, &contract_id);
+    client.initialize(&admin, &token, &min_confirmations, &crypto_id);
+    client
 }
 
 /// Build a minimal 80-byte block header where:
@@ -35,7 +51,7 @@ fn make_header(env: &Env, merkle_root: &BytesN<32>) -> Bytes {
     Bytes::from_slice(env, &header)
 }
 
-/// Double-SHA256 helper mirroring the contract logic.
+/// Double-SHA256 helper mirroring the sub-contract logic.
 fn dsha256(env: &Env, data: &Bytes) -> BytesN<32> {
     let first: BytesN<32> = env.crypto().sha256(data).into();
     let first_bytes = Bytes::from_slice(env, first.to_array().as_ref());
@@ -77,7 +93,8 @@ fn test_double_initialize() {
     let env = Env::default();
     env.mock_all_auths();
     let (admin, token, client) = setup(&env);
-    client.initialize(&admin, &token, &1);
+    let crypto_id = Address::generate(&env); // dummy — will panic before use
+    client.initialize(&admin, &token, &1, &crypto_id);
 }
 
 #[test]
@@ -118,7 +135,6 @@ fn test_replay_attack_blocked() {
     let (root, proof) = single_leaf_proof(&env, &tx_id);
     let header = make_header(&env, &root);
 
-    // First claim succeeds
     client.verify_and_claim(&SpvProof {
         block_header: header.clone(),
         tx_id: tx_id.clone(),
@@ -191,13 +207,7 @@ fn test_invalid_merkle_proof_rejected() {
 fn test_insufficient_confirmations() {
     let env = Env::default();
     env.mock_all_auths();
-
-    let admin = Address::generate(&env);
-    let token = Address::generate(&env);
-    let contract_id = env.register(BtcRelayContract, ());
-    let client = BtcRelayContractClient::new(&env, &contract_id);
-    // Require 6 confirmations
-    client.initialize(&admin, &token, &6);
+    let client = setup_with_confirmations(&env, 6);
 
     let recipient = Address::generate(&env);
     let tx_id = BytesN::from_array(&env, &[0xffu8; 32]);
@@ -221,10 +231,12 @@ fn test_update_config() {
     let (admin, token, client) = setup(&env);
 
     let new_admin = Address::generate(&env);
+    let crypto_id = env.register(BtcCryptoContract, ());
     client.update_config(&Config {
         admin: new_admin.clone(),
         wrapped_btc_token: token.clone(),
         min_confirmations: 6,
+        crypto_contract: crypto_id,
     });
 
     let cfg = client.get_config();
