@@ -1,3 +1,237 @@
+   0.888693676s  INFO prepare_target{force=false package_id=liquidity_vault v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/liquidity_vault) target="liquidity_vault"}: cargo::core::compiler::fingerprint: fingerprint error for liquidity_vault v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/liquidity_vault)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("liquidity_vault", ["cdylib"], "/home/izk/Documents/DRIPS/chenpilot/contracts/liquidity_vault/src/lib.rs", Edition2021) }
+   0.888764368s  INFO prepare_target{force=false package_id=liquidity_vault v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/liquidity_vault) target="liquidity_vault"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/izk/Documents/DRIPS/chenpilot/contracts/target/debug/.fingerprint/liquidity_vault-53d35346c3f0d5f6/test-lib-liquidity_vault`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: cargo_util::paths::read_bytes
+   1: cargo_util::paths::read
+   2: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   3: cargo::core::compiler::fingerprint::prepare_target
+   4: cargo::core::compiler::compile
+   5: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   6: cargo::ops::cargo_compile::compile_ws
+   7: cargo::ops::cargo_compile::compile_with_exec
+   8: cargo::ops::cargo_compile::compile
+   9: cargo::commands::check::exec
+  10: <cargo::cli::Exec>::exec
+  11: cargo::main
+  12: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  13: std::rt::lang_start::<()>::{closure#0}
+  14: core::ops::function::impls::<impl core::ops::function::FnOnce<A> for &F>::call_once
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/core/src/ops/function.rs:287:21
+  15: std::panicking::catch_unwind::do_call
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:590:40
+  16: std::panicking::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:553:19
+  17: std::panic::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panic.rs:359:14
+  18: std::rt::lang_start_internal::{{closure}}
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/rt.rs:175:24
+  19: std::panicking::catch_unwind::do_call
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:590:40
+  20: std::panicking::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:553:19
+  21: std::panic::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panic.rs:359:14
+  22: std::rt::lang_start_internal
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/rt.rs:171:5
+  23: main
+  24: __libc_start_call_main
+             at ./csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+  25: __libc_start_main_impl
+             at ./csu/../csu/libc-start.c:360:3
+  26: <unknown>
+   1.183376178s  INFO prepare_target{force=false package_id=por_validator v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/por_validator) target="por_validator"}: cargo::core::compiler::fingerprint: fingerprint error for por_validator v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/por_validator)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("por_validator", ["cdylib"], "/home/izk/Documents/DRIPS/chenpilot/contracts/por_validator/src/lib.rs", Edition2021) }
+   1.183518488s  INFO prepare_target{force=false package_id=por_validator v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/por_validator) target="por_validator"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/izk/Documents/DRIPS/chenpilot/contracts/target/debug/.fingerprint/por_validator-7f0b0f80eeff2a51/lib-por_validator`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: cargo_util::paths::read_bytes
+   1: cargo_util::paths::read
+   2: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   3: cargo::core::compiler::fingerprint::prepare_target
+   4: cargo::core::compiler::compile
+   5: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   6: cargo::ops::cargo_compile::compile_ws
+   7: cargo::ops::cargo_compile::compile_with_exec
+   8: cargo::ops::cargo_compile::compile
+   9: cargo::commands::check::exec
+  10: <cargo::cli::Exec>::exec
+  11: cargo::main
+  12: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  13: std::rt::lang_start::<()>::{closure#0}
+  14: core::ops::function::impls::<impl core::ops::function::FnOnce<A> for &F>::call_once
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/core/src/ops/function.rs:287:21
+  15: std::panicking::catch_unwind::do_call
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:590:40
+  16: std::panicking::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:553:19
+  17: std::panic::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panic.rs:359:14
+  18: std::rt::lang_start_internal::{{closure}}
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/rt.rs:175:24
+  19: std::panicking::catch_unwind::do_call
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:590:40
+  20: std::panicking::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:553:19
+  21: std::panic::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panic.rs:359:14
+  22: std::rt::lang_start_internal
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/rt.rs:171:5
+  23: main
+  24: __libc_start_call_main
+             at ./csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+  25: __libc_start_main_impl
+             at ./csu/../csu/libc-start.c:360:3
+  26: <unknown>
+   1.187661518s  INFO prepare_target{force=false package_id=por_validator v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/por_validator) target="por_validator"}: cargo::core::compiler::fingerprint: fingerprint error for por_validator v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/por_validator)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("por_validator", ["cdylib"], "/home/izk/Documents/DRIPS/chenpilot/contracts/por_validator/src/lib.rs", Edition2021) }
+   1.187843100s  INFO prepare_target{force=false package_id=por_validator v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/por_validator) target="por_validator"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/izk/Documents/DRIPS/chenpilot/contracts/target/debug/.fingerprint/por_validator-07154b27ec3e71cf/test-lib-por_validator`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: cargo_util::paths::read_bytes
+   1: cargo_util::paths::read
+   2: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   3: cargo::core::compiler::fingerprint::prepare_target
+   4: cargo::core::compiler::compile
+   5: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   6: cargo::ops::cargo_compile::compile_ws
+   7: cargo::ops::cargo_compile::compile_with_exec
+   8: cargo::ops::cargo_compile::compile
+   9: cargo::commands::check::exec
+  10: <cargo::cli::Exec>::exec
+  11: cargo::main
+  12: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  13: std::rt::lang_start::<()>::{closure#0}
+  14: core::ops::function::impls::<impl core::ops::function::FnOnce<A> for &F>::call_once
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/core/src/ops/function.rs:287:21
+  15: std::panicking::catch_unwind::do_call
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:590:40
+  16: std::panicking::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:553:19
+  17: std::panic::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panic.rs:359:14
+  18: std::rt::lang_start_internal::{{closure}}
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/rt.rs:175:24
+  19: std::panicking::catch_unwind::do_call
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:590:40
+  20: std::panicking::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:553:19
+  21: std::panic::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panic.rs:359:14
+  22: std::rt::lang_start_internal
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/rt.rs:171:5
+  23: main
+  24: __libc_start_call_main
+             at ./csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+  25: __libc_start_main_impl
+             at ./csu/../csu/libc-start.c:360:3
+  26: <unknown>
+   1.190369783s  INFO prepare_target{force=false package_id=relayer_slashing v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/relayer_slashing) target="relayer_slashing"}: cargo::core::compiler::fingerprint: fingerprint error for relayer_slashing v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/relayer_slashing)/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("relayer_slashing", ["cdylib"], "/home/izk/Documents/DRIPS/chenpilot/contracts/relayer_slashing/src/lib.rs", Edition2021) }
+   1.190484539s  INFO prepare_target{force=false package_id=relayer_slashing v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/relayer_slashing) target="relayer_slashing"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/izk/Documents/DRIPS/chenpilot/contracts/target/debug/.fingerprint/relayer_slashing-ed03d253c2b6aabc/lib-relayer_slashing`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: cargo_util::paths::read_bytes
+   1: cargo_util::paths::read
+   2: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   3: cargo::core::compiler::fingerprint::prepare_target
+   4: cargo::core::compiler::compile
+   5: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   6: cargo::ops::cargo_compile::compile_ws
+   7: cargo::ops::cargo_compile::compile_with_exec
+   8: cargo::ops::cargo_compile::compile
+   9: cargo::commands::check::exec
+  10: <cargo::cli::Exec>::exec
+  11: cargo::main
+  12: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  13: std::rt::lang_start::<()>::{closure#0}
+  14: core::ops::function::impls::<impl core::ops::function::FnOnce<A> for &F>::call_once
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/core/src/ops/function.rs:287:21
+  15: std::panicking::catch_unwind::do_call
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:590:40
+  16: std::panicking::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:553:19
+  17: std::panic::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panic.rs:359:14
+  18: std::rt::lang_start_internal::{{closure}}
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/rt.rs:175:24
+  19: std::panicking::catch_unwind::do_call
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:590:40
+  20: std::panicking::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:553:19
+  21: std::panic::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panic.rs:359:14
+  22: std::rt::lang_start_internal
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/rt.rs:171:5
+  23: main
+  24: __libc_start_call_main
+             at ./csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+  25: __libc_start_main_impl
+             at ./csu/../csu/libc-start.c:360:3
+  26: <unknown>
+   1.193470283s  INFO prepare_target{force=false package_id=relayer_slashing v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/relayer_slashing) target="relayer_slashing"}: cargo::core::compiler::fingerprint: fingerprint error for relayer_slashing v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/relayer_slashing)/Check { test: true }/TargetInner { name_inferred: true, ..: lib_target("relayer_slashing", ["cdylib"], "/home/izk/Documents/DRIPS/chenpilot/contracts/relayer_slashing/src/lib.rs", Edition2021) }
+   1.193528223s  INFO prepare_target{force=false package_id=relayer_slashing v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/relayer_slashing) target="relayer_slashing"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/izk/Documents/DRIPS/chenpilot/contracts/target/debug/.fingerprint/relayer_slashing-0795dd3ebee23db6/test-lib-relayer_slashing`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: cargo_util::paths::read_bytes
+   1: cargo_util::paths::read
+   2: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   3: cargo::core::compiler::fingerprint::prepare_target
+   4: cargo::core::compiler::compile
+   5: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   6: cargo::ops::cargo_compile::compile_ws
+   7: cargo::ops::cargo_compile::compile_with_exec
+   8: cargo::ops::cargo_compile::compile
+   9: cargo::commands::check::exec
+  10: <cargo::cli::Exec>::exec
+  11: cargo::main
+  12: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  13: std::rt::lang_start::<()>::{closure#0}
+  14: core::ops::function::impls::<impl core::ops::function::FnOnce<A> for &F>::call_once
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/core/src/ops/function.rs:287:21
+  15: std::panicking::catch_unwind::do_call
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:590:40
+  16: std::panicking::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:553:19
+  17: std::panic::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panic.rs:359:14
+  18: std::rt::lang_start_internal::{{closure}}
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/rt.rs:175:24
+  19: std::panicking::catch_unwind::do_call
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:590:40
+  20: std::panicking::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panicking.rs:553:19
+  21: std::panic::catch_unwind
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/panic.rs:359:14
+  22: std::rt::lang_start_internal
+             at /rustc/4068bafedd8ba724e332a5221c06a6fa531a30d2/library/std/src/rt.rs:171:5
+  23: main
+  24: __libc_start_call_main
+             at ./csu/../sysdeps/nptl/libc_start_call_main.h:58:16
+  25: __libc_start_main_impl
+             at ./csu/../csu/libc-start.c:360:3
+  26: <unknown>
+    Checking por_validator v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/por_validator)
+    Checking relayer_slashing v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/relayer_slashing)
+    Checking liquidity_vault v0.1.0 (/home/izk/Documents/DRIPS/chenpilot/contracts/liquidity_vault)
+error: could not compile `liquidity_vault` (lib test) due to 7 previous errors; 13 warnings emitted
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `por_validator` (lib) due to 1 previous error
+error: could not compile `relayer_slashing` (lib test) due to 1 previous error; 6 warnings emitted
+error: could not compile `relayer_slashing` (lib) due to 1 previous error
+error: could not compile `por_validator` (lib test) due to 8 previous errors; 10 warnings emitted
     Updating crates.io index
      Locking 168 packages to latest compatible versions
       Adding arbitrary v1.3.2 (available: v1.4.2)
