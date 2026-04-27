@@ -1,6 +1,13 @@
-import { Client, GatewayIntentBits, Message, TextChannel } from 'discord.js';
-import { TransactionNotificationData } from './types';
-import { createTrustlineOperation } from '@chen-pilot/sdk-core';
+import {
+  Client,
+  GatewayIntentBits,
+  Message,
+  TextChannel,
+  ChannelType,
+  PermissionFlagsBits,
+} from "discord.js";
+import { TransactionNotificationData } from "./types";
+import { createTrustlineOperation } from "@chen-pilot/sdk-core";
 
 export class DiscordAdapter {
   private client: Client;
@@ -31,6 +38,89 @@ export class DiscordAdapter {
 
     this.client.on("messageCreate", async (message: Message) => {
       if (message.author.bot) return;
+
+      if (message.content === "!setup") {
+        if (!message.guild) {
+          return message.reply("❌ This command can only be used in a server.");
+        }
+
+        if (
+          !message.member?.permissions.has(PermissionFlagsBits.Administrator)
+        ) {
+          return message.reply(
+            "❌ You need Administrator permission to run this command."
+          );
+        }
+
+        await message.reply("⏳ Setting up Chen Pilot bot...");
+
+        try {
+          const guild = message.guild;
+
+          // Create category
+          const category = await guild.channels.create({
+            name: "🤖 Chen Pilot",
+            type: ChannelType.GuildCategory,
+          });
+
+          // Create channels
+          const alertsChannel = await guild.channels.create({
+            name: "price-alerts",
+            type: ChannelType.GuildText,
+            parent: category.id,
+            topic: "Real-time price spike alerts with AI summaries",
+          });
+
+          const txChannel = await guild.channels.create({
+            name: "transactions",
+            type: ChannelType.GuildText,
+            parent: category.id,
+            topic: "Transaction confirmations and notifications",
+          });
+
+          const commandsChannel = await guild.channels.create({
+            name: "bot-commands",
+            type: ChannelType.GuildText,
+            parent: category.id,
+            topic: "Use bot commands here: !start, !sponsor, !trustline",
+          });
+
+          // Create roles
+          const alertRole = await guild.roles.create({
+            name: "Price Alerts",
+            color: 0xf1c40f,
+            mentionable: true,
+            reason: "Chen Pilot setup - users who want price alerts",
+          });
+
+          const txRole = await guild.roles.create({
+            name: "Transaction Alerts",
+            color: 0x3498db,
+            mentionable: true,
+            reason:
+              "Chen Pilot setup - users who want transaction notifications",
+          });
+
+          let response = "✅ **Chen Pilot setup complete!**\n\n";
+          response += "**Channels created:**\n";
+          response += `• ${alertsChannel} - Price spike alerts\n`;
+          response += `• ${txChannel} - Transaction notifications\n`;
+          response += `• ${commandsChannel} - Bot commands\n\n`;
+          response += "**Roles created:**\n";
+          response += `• ${alertRole} - Mention this role for price alerts\n`;
+          response += `• ${txRole} - Mention this role for transaction alerts\n\n`;
+          response += "Users can self-assign roles to receive notifications!";
+
+          await message.reply(response);
+        } catch (error) {
+          console.error("Setup error:", error);
+          await message.reply(
+            `❌ Setup failed: ${error instanceof Error ? error.message : "Unknown error"}\n` +
+              "Make sure the bot has Administrator permission."
+          );
+        }
+        return;
+      }
 
       if (message.content === "!start") {
         await message.reply(
@@ -71,32 +161,40 @@ export class DiscordAdapter {
         }
       }
 
-      if (message.content.startsWith('!trustline')) {
-        const args = message.content.split(' ').slice(1);
+      if (message.content.startsWith("!trustline")) {
+        const args = message.content.split(" ").slice(1);
         if (args.length < 1) {
-          return message.reply('Usage: !trustline <assetCode> [issuerDomain|issuerAddress]\nExample: !trustline USDC circle.com');
+          return message.reply(
+            "Usage: !trustline <assetCode> [issuerDomain|issuerAddress]\nExample: !trustline USDC circle.com"
+          );
         }
 
         const assetCode = args[0];
         const assetIssuer = args[1];
 
         if (!assetIssuer) {
-          return message.reply(`Please provide an issuer domain or address for ${assetCode}.`);
+          return message.reply(
+            `Please provide an issuer domain or address for ${assetCode}.`
+          );
         }
 
         try {
-          await message.reply(`🔍 Looking up asset ${assetCode} from ${assetIssuer}...`);
+          await message.reply(
+            `🔍 Looking up asset ${assetCode} from ${assetIssuer}...`
+          );
           const op = await createTrustlineOperation(assetCode, assetIssuer);
-          
+
           let response = `✅ Found asset ${assetCode}!\n\n`;
           response += `To add this trustline, you can use the following details in your wallet:\n`;
           response += `**Asset:** ${assetCode}\n`;
           response += `**Issuer:** \`${(op as any).asset.issuer}\`\n\n`;
           response += `*Note: In a future update, I will provide a direct signing link.*`;
-          
+
           await message.reply(response);
         } catch (error) {
-          await message.reply(`❌ Error: ${error instanceof Error ? error.message : String(error)}`);
+          await message.reply(
+            `❌ Error: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       }
     });
