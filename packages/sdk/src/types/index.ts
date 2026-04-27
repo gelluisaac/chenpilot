@@ -215,6 +215,8 @@ export interface NetworkStatusConfig {
   rpcUrl?: string;
   /** Optional Horizon URL override. */
   horizonUrl?: string;
+  /** Optional request timeout in milliseconds. */
+  timeout?: number;
 }
 
 /** Network health information. */

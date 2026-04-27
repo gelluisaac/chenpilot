@@ -12,15 +12,18 @@ export interface TrustlineCheckResult {
  * 
  * @param domain The home domain to resolve (e.g., "circle.com")
  * @param assetCode The asset code to find in the stellar.toml
+ * @param timeout Optional request timeout in milliseconds
  * @returns The issuer's public key or undefined
  */
 export async function resolveIssuerFromDomain(
   domain: string,
-  assetCode: string
+  assetCode: string,
+  timeout?: number
 ): Promise<string | undefined> {
   try {
     const url = `https://${domain}/.well-known/stellar.toml`;
-    const response = await fetch(url);
+    const signal = timeout ? AbortSignal.timeout(timeout) : undefined;
+    const response = await fetch(url, { signal });
     if (!response.ok) return undefined;
     
     const text = await response.text();
@@ -106,18 +109,20 @@ export async function hasValidStellarTrustline(
  * @param assetCode Asset code (e.g., "USDC")
  * @param assetIssuer Asset issuer public key or domain
  * @param limit Optional trust limit
+ * @param timeout Optional request timeout in milliseconds (used when resolving domain)
  * @returns An Operation object
  */
 export async function createTrustlineOperation(
   assetCode: string,
   assetIssuer: string,
-  limit?: string
+  limit?: string,
+  timeout?: number
 ): Promise<any> {
   let issuer = assetIssuer;
 
   // If issuer looks like a domain, resolve it
   if (assetIssuer.includes(".") && !assetIssuer.startsWith("G")) {
-    const resolvedIssuer = await resolveIssuerFromDomain(assetIssuer, assetCode);
+    const resolvedIssuer = await resolveIssuerFromDomain(assetIssuer, assetCode, timeout);
     if (!resolvedIssuer) {
       throw new Error(`Could not resolve issuer for ${assetCode} from domain ${assetIssuer}`);
     }
