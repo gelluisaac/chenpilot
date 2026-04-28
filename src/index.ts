@@ -6,6 +6,7 @@ import AppDataSource from "./config/Datasource";
 import logger from "./config/logger";
 import { initializeSocketManager } from "./Gateway/socketManager";
 import { horizonOperationStreamerService } from "./services/horizonOperationStreamer.service";
+import { priceSpikeAlertService } from "./services/priceSpikeAlert.service";
 class Server {
   private server: http.Server;
   private port: number;
@@ -26,6 +27,7 @@ class Server {
       const shutdown = async () => {
         logger.info("Shutting down gracefully...");
         horizonOperationStreamerService.stop();
+        priceSpikeAlertService.stop();
         await AppDataSource.destroy();
         this.server.close(() => {
           logger.info("Server closed");
@@ -37,6 +39,7 @@ class Server {
       console.log("DB connection established!");
       logger.info("Database connected successfully");
       horizonOperationStreamerService.start();
+      priceSpikeAlertService.start();
       process.on("SIGTERM", shutdown);
       process.on("SIGINT", shutdown);
 

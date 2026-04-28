@@ -50,6 +50,7 @@ export async function checkNetworkHealth(
   const startTime = Date.now();
 
   try {
+    const signal = config.timeout ? AbortSignal.timeout(config.timeout) : undefined;
     const response = await fetch(rpcUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -59,6 +60,7 @@ export async function checkNetworkHealth(
         method: "getLatestLedger",
         params: [],
       }),
+      signal,
     });
 
     const responseTimeMs = Date.now() - startTime;
@@ -119,6 +121,7 @@ export async function checkLedgerLatency(
 ): Promise<LedgerLatency> {
   const rpcUrl = config.rpcUrl || DEFAULT_RPC_URLS[config.network];
 
+  const signal = config.timeout ? AbortSignal.timeout(config.timeout) : undefined;
   const response = await fetch(rpcUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -128,6 +131,7 @@ export async function checkLedgerLatency(
       method: "getLatestLedger",
       params: [],
     }),
+    signal,
   });
 
   if (!response.ok) {
@@ -181,7 +185,8 @@ export async function getProtocolVersion(
 ): Promise<ProtocolVersion> {
   const horizonUrl = config.horizonUrl || DEFAULT_HORIZON_URLS[config.network];
 
-  const response = await fetch(`${horizonUrl}/`);
+  const signal = config.timeout ? AbortSignal.timeout(config.timeout) : undefined;
+  const response = await fetch(`${horizonUrl}/`, { signal });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch protocol version: ${response.statusText}`);
