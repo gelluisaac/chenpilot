@@ -1,6 +1,17 @@
 import { Telegraf } from 'telegraf';
-import { TransactionNotificationData } from './types';
+import { TransactionNotificationData, QuestNotificationData } from './types';
 import { createTrustlineOperation } from '@chen-pilot/sdk-core';
+
+// Commands that involve personal account data and must only be used in DMs
+const DM_ONLY_COMMANDS = ['/balance'];
+
+function isDM(ctx: Parameters<Parameters<Telegraf['command']>[1]>[0]): boolean {
+  return ctx.chat?.type === 'private';
+}
+
+async function rejectPublicChannel(ctx: Parameters<Parameters<Telegraf['command']>[1]>[0]): Promise<void> {
+  await ctx.reply('🔒 This command contains sensitive account data and can only be used in a private message (DM) with the bot.');
+}
 
 export class TelegramAdapter {
   private bot: Telegraf | undefined;
@@ -20,7 +31,33 @@ export class TelegramAdapter {
     this.bot = new Telegraf(this.token);
 
     this.bot.start((ctx) => ctx.reply('Welcome to Chen Pilot! I am your AI-powered Stellar DeFi assistant.'));
-    this.bot.help((ctx) => ctx.reply('Commands: /start, /balance, /swap, /trustline'));
+    this.bot.help((ctx) => ctx.reply('Commands: /start, /balance (DM only), /swap, /trustline'));
+
+    this.bot.command('balance', async (ctx) => {
+      if (!isDM(ctx)) {
+        return rejectPublicChannel(ctx);
+      }
+      const userId = String(ctx.from?.id);
+      await ctx.reply('⏳ Fetching your balance...');
+      try {
+        const response = await fetch(
+          `${process.env.BACKEND_URL}/api/account/${userId}/balance`
+        );
+        const data = (await response.json()) as {
+          success: boolean;
+          message: string;
+          balances?: Array<{ asset: string; amount: string }>;
+        };
+        if (data.success && data.balances) {
+          const lines = data.balances.map((b) => `• ${b.amount} ${b.asset}`).join('\n');
+          await ctx.reply(`💰 <b>Your Balances:</b>\n${lines}`, { parse_mode: 'HTML' });
+        } else {
+          await ctx.reply(`❌ Could not fetch balance: ${data.message}`);
+        }
+      } catch (error) {
+        await ctx.reply('❌ Could not reach the balance service. Please try again later.');
+      }
+    });
 
     this.bot.command('trustline', async (ctx) => {
       const args = ctx.message.text.split(' ').slice(1);
@@ -116,6 +153,56 @@ export class TelegramAdapter {
 
     if (data.memo) {
       message += `📝 <b>Memo:</b> ${data.memo}\n`;
+    }
+
+    return message;
+  }
+
+  /**
+   * Send a quest notification to a user
+   */
+  async sendQuestNotification(
+    userId: string,
+    data: QuestNotificationData
+  ): Promise<boolean> {
+    if (!this.bot) {
+      console.warn("⚠️ Telegram bot not initialized");
+      return false;
+    }
+
+    const chatId = this.userChatIds.get(userId);
+    if (!chatId) {
+      console.warn(`⚠️ No chat ID found for user ${userId}`);
+      return false;
+    }
+
+    const message = this.formatQuestMessage(data);
+
+    try {
+      await this.bot.telegram.sendMessage(chatId, message, {
+        parse_mode: "HTML",
+      });
+      return true;
+    } catch (error) {
+      console.error("Error sending Telegram quest notification:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Format quest notification message
+   */
+  private formatQuestMessage(data: QuestNotificationData): string {
+    const expiry = new Date(data.expiresAt).toLocaleString();
+
+    let message = `🎯 <b>New Community Quest Available!</b>\n\n`;
+    message += `📌 <b>${data.title}</b>\n`;
+    message += `${data.description}\n\n`;
+    message += `🏆 <b>Reward:</b> ${data.reward}\n`;
+    message += `⏰ <b>Expires:</b> ${expiry}\n`;
+
+    if (data.url) {
+      message += `🔗 <b>Details:</b> ${data.url}\n`;
     }
 
     return message;

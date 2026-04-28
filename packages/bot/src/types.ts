@@ -59,6 +59,41 @@ export interface TransactionNotificationData {
 }
 
 /**
+ * Quest notification data for community quest/challenge alerts
+ */
+export interface QuestNotificationData {
+  /**
+   * Unique quest identifier
+   */
+  questId: string;
+
+  /**
+   * Quest title
+   */
+  title: string;
+
+  /**
+   * Short description of the quest
+   */
+  description: string;
+
+  /**
+   * Reward for completing the quest (e.g., "50 XLM")
+   */
+  reward: string;
+
+  /**
+   * Quest expiry timestamp (ISO string or Unix timestamp)
+   */
+  expiresAt: string | number;
+
+  /**
+   * URL to view quest details
+   */
+  url?: string;
+}
+
+/**
  * Bot notification service configuration
  */
 export interface BotNotificationConfig {
