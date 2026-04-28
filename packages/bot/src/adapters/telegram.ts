@@ -1,16 +1,32 @@
 import { Telegraf } from "telegraf";
-import { TransactionNotificationData } from "./types";
+import { TransactionNotificationData } from "../types";
 import { createTrustlineOperation } from "@chen-pilot/sdk-core";
+import { searchFeatures, formatHelpMessage } from "../services/helpProvider";
+import { AssetVerificationService } from '../assetVerification';
+
+const DASHBOARD_URL = process.env.DASHBOARD_URL || `${process.env.API_BASE_URL || 'http://localhost:2333'}/dashboard`;
+const HORIZON_URL = process.env.STELLAR_HORIZON_URL || 'https://horizon-testnet.stellar.org';
 
 export class TelegramAdapter {
   private bot: Telegraf | undefined;
   private token: string;
   private userChatIds: Map<string, string> = new Map(); // userId -> chatId
-  private whitelistedGroups: Set<number> = new Set(); // Approved group chat IDs
-  private inviteCodes: Map<string, number> = new Map(); // code -> groupId
+  // #145: Track last command timestamp per user
+  private lastCommandTime: Map<number, number> = new Map();
+  private verificationService: AssetVerificationService;
 
   constructor(token: string) {
     this.token = token;
+    this.verificationService = new AssetVerificationService(HORIZON_URL);
+  }
+
+  // #145: Returns true if the user is flooding (within debounce window)
+  private isFlooding(userId: number): boolean {
+    const now = Date.now();
+    const last = this.lastCommandTime.get(userId) ?? 0;
+    if (now - last < DEBOUNCE_MS) return true;
+    this.lastCommandTime.set(userId, now);
+    return false;
   }
 
   async init() {
@@ -21,17 +37,21 @@ export class TelegramAdapter {
 
     this.bot = new Telegraf(this.token);
 
-    this.bot.start((ctx) =>
-      ctx.reply(
-        "Welcome to Chen Pilot! I am your AI-powered Stellar DeFi assistant."
-      )
-    );
-    this.bot.help((ctx) =>
-      ctx.reply("Commands: /start, /balance, /swap, /trustline")
-    );
+    // #145: Middleware to debounce all incoming messages/commands
+    this.bot.use(async (ctx: any, next: () => Promise<void>) => {
+      const userId: number | undefined = ctx.from?.id;
+      if (userId && this.isFlooding(userId)) {
+        await ctx.reply("⏳ Please wait a moment before sending another command.");
+        return;
+      }
+      return next();
+    });
 
-    this.bot.command("trustline", async (ctx) => {
-      const args = ctx.message.text.split(" ").slice(1);
+    this.bot.start((ctx: any) => ctx.reply('Welcome to Chen Pilot! I am your AI-powered Stellar DeFi assistant.'));
+    this.bot.help((ctx: any) => ctx.reply('Commands: /start, /balance, /swap, /trustline, /dashboard, /validate'));
+
+    this.bot.command('trustline', async (ctx: any) => {
+      const args = ctx.message.text.split(' ').slice(1);
       if (args.length < 1) {
         return ctx.reply(
           "Usage: /trustline <assetCode> [issuerDomain|issuerAddress]\nExample: /trustline USDC circle.com"
@@ -69,118 +89,78 @@ export class TelegramAdapter {
       }
     });
 
-    this.bot.command("setup_group", async (ctx) => {
-      const chatId = ctx.chat?.id;
-      if (!chatId || ctx.chat?.type === "private") {
-        return ctx.reply("This command only works in groups.");
-      }
-
-      const member = await ctx.telegram.getChatMember(chatId, ctx.from.id);
-      if (member.status !== "creator" && member.status !== "administrator") {
-        return ctx.reply("Only admins can set up the group.");
-      }
-
-      this.whitelistedGroups.add(chatId);
-      return ctx.reply(
-        "✅ Group registered! Use /generate_invite to create invite codes."
+    // #146: Dashboard command
+    this.bot.command('dashboard', async (ctx: any) => {
+      await ctx.reply(
+        `📊 <b>Chen Pilot Dashboard</b>\n\nAccess your admin dashboard here:\n🔗 <a href="${DASHBOARD_URL}">Open Dashboard</a>\n\n<i>Note: You must be logged in to view the dashboard.</i>`,
+        { parse_mode: 'HTML' }
       );
     });
 
-    this.bot.command("generate_invite", async (ctx) => {
-      const chatId = ctx.chat?.id;
-      if (!chatId || ctx.chat?.type === "private") {
-        return ctx.reply("This command only works in groups.");
+    // #148: /validate command for Stellar asset verification
+    this.bot.command('validate', async (ctx: any) => {
+      const args = ctx.message.text.split(' ').slice(1);
+      if (args.length < 2) {
+        return ctx.reply('Usage: /validate <assetCode> <issuerAddress>\nExample: /validate USDC GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5');
       }
 
-      if (!this.whitelistedGroups.has(chatId)) {
-        return ctx.reply("Group not registered. Use /setup_group first.");
-      }
-
-      const member = await ctx.telegram.getChatMember(chatId, ctx.from.id);
-      if (member.status !== "creator" && member.status !== "administrator") {
-        return ctx.reply("Only admins can generate invites.");
-      }
-
-      const code = Math.random().toString(36).substring(2, 10).toUpperCase();
-      this.inviteCodes.set(code, chatId);
-      return ctx.reply(
-        `🎟️ Invite code: <code>${code}</code>\n\nShare this with users to join.`,
-        { parse_mode: "HTML" }
-      );
-    });
-
-    this.bot.command("join", async (ctx) => {
-      if (ctx.chat?.type !== "private") {
-        return ctx.reply("Use this command in a private chat with me.");
-      }
-
-      const args = ctx.message.text.split(" ").slice(1);
-      if (args.length < 1) {
-        return ctx.reply("Usage: /join <invite_code>");
-      }
-
-      const code = args[0].toUpperCase();
-      const groupId = this.inviteCodes.get(code);
-
-      if (!groupId) {
-        return ctx.reply("❌ Invalid invite code.");
-      }
+      const [assetCode, issuerAddress] = args;
+      await ctx.reply(`🔍 Verifying asset <b>${assetCode}</b> from issuer <code>${issuerAddress.slice(0, 8)}...</code>`, { parse_mode: 'HTML' });
 
       try {
-        const inviteLink = await ctx.telegram.exportChatInviteLink(groupId);
-        return ctx.reply(`✅ Valid code! Join here: ${inviteLink}`);
+        const result = await this.verificationService.verifyAsset(assetCode, issuerAddress);
+        const statusEmoji = result.status === 'VERIFIED' ? '✅' : result.status === 'MALICIOUS' ? '🚨' : '⚠️';
+
+        let reply = `${statusEmoji} <b>Asset Verification: ${result.status}</b>\n\n`;
+        reply += `<b>Asset:</b> ${assetCode}\n`;
+        reply += `<b>Issuer:</b> <code>${issuerAddress}</code>\n`;
+        if (result.domain) reply += `<b>Domain:</b> ${result.domain}\n`;
+        if (result.details) reply += `<b>Details:</b> ${result.details}\n`;
+        reply += `\n<b>Safe to use:</b> ${result.isSafe ? 'Yes ✅' : 'No ❌'}`;
+
+        await ctx.reply(reply, { parse_mode: 'HTML' });
       } catch (error) {
-        return ctx.reply(
-          "❌ Could not generate invite link. Make sure I am an admin in the group."
-        );
-      }
-    });
-
-    this.bot.on("my_chat_member", async (ctx) => {
-      const chatId = ctx.chat?.id;
-      const newStatus = ctx.myChatMember.new_chat_member.status;
-
-      if (newStatus === "member" || newStatus === "administrator") {
-        if (
-          chatId &&
-          ctx.chat?.type !== "private" &&
-          !this.whitelistedGroups.has(chatId)
-        ) {
-          await ctx.telegram.sendMessage(
-            chatId,
-            "⚠️ This group is not registered. An admin must run /setup_group."
-          );
-        }
-      }
-    });
-
-    this.bot.use(async (ctx, next) => {
-      const chatId = ctx.chat?.id;
-      if (
-        chatId &&
-        ctx.chat?.type !== "private" &&
-        !this.whitelistedGroups.has(chatId)
-      ) {
-        return;
+        await ctx.reply(`❌ Verification error: ${error instanceof Error ? error.message : String(error)}`);
       }
       return next();
     });
+    // Set bot commands for mobile menu
+    await this.bot.telegram.setMyCommands([
+      { command: "start", description: "Start the bot" },
+      { command: "balance", description: "Check wallet balance" },
+      { command: "swap", description: "Swap assets" },
+      { command: "trustline", description: "Add trustline" },
+      { command: "help", description: "Show help" },
+    ]);
 
     this.bot.launch();
     console.log("✅ Telegram bot initialized.");
   }
 
-  /**
-   * Register a user to receive notifications
-   */
+  // #147: Announce a new GitHub release to a specific chat
+  async announceRelease(chatId: string, release: { tag_name: string; name: string; html_url: string; body?: string }): Promise<boolean> {
+    if (!this.bot) {
+      console.warn("⚠️ Telegram bot not initialized");
+      return false;
+    }
+
+    const body = release.body ? `\n\n${release.body.slice(0, 500)}${release.body.length > 500 ? '...' : ''}` : '';
+    const message = `🚀 <b>New Release: ${release.name || release.tag_name}</b>${body}\n\n🔗 <a href="${release.html_url}">View on GitHub</a>`;
+
+    try {
+      await this.bot.telegram.sendMessage(chatId, message, { parse_mode: 'HTML' });
+      return true;
+    } catch (error) {
+      console.error("Error sending release announcement:", error);
+      return false;
+    }
+  }
+
   async registerUser(userId: string, chatId: string): Promise<boolean> {
     this.userChatIds.set(userId, chatId);
     return true;
   }
 
-  /**
-   * Send a transaction confirmation notification
-   */
   async sendTransactionNotification(
     userId: string,
     data: TransactionNotificationData
@@ -209,9 +189,6 @@ export class TelegramAdapter {
     }
   }
 
-  /**
-   * Format transaction notification message
-   */
   private formatTransactionMessage(data: TransactionNotificationData): string {
     const statusEmoji = data.successful ? "✅" : "❌";
     const timestamp = new Date(data.timestamp).toLocaleString();
@@ -234,9 +211,6 @@ export class TelegramAdapter {
     return message;
   }
 
-  /**
-   * Send a general notification to a user
-   */
   async sendNotification(userId: string, message: string): Promise<boolean> {
     if (!this.bot) {
       console.warn("⚠️ Telegram bot not initialized");

@@ -74,6 +74,7 @@ interface Response {
 export interface HorizonClientOptions {
   baseUrl?: string;
   fetchFn?: FetchLike;
+  timeout?: number;
 }
 
 /**
@@ -82,10 +83,12 @@ export interface HorizonClientOptions {
 export class HorizonClient {
   private baseUrl: string;
   private fetch: FetchLike;
+  private timeout?: number;
 
   constructor(options: HorizonClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? "https://horizon.stellar.org";
     this.fetch = options.fetchFn ?? globalThis.fetch;
+    this.timeout = options.timeout;
   }
 
   /**
@@ -114,7 +117,8 @@ export class HorizonClient {
 
     const url = `${this.baseUrl}/accounts/${accountId}/offers?${params.toString()}`;
 
-    const response = await this.fetch(url);
+    const signal = this.timeout ? AbortSignal.timeout(this.timeout) : undefined;
+    const response = await this.fetch(url, { signal });
 
     if (!response.ok) {
       const errorText = await response.text();
