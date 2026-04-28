@@ -94,61 +94,6 @@ export interface QuestNotificationData {
 }
 
 /**
- * Audit log entry for significant bot-initiated administrative actions
- */
-export interface AuditLogAction {
-  /**
-   * The action performed (e.g., "SPONSOR_ACCOUNT", "SEND_TRANSACTION_NOTIFICATION")
-   */
-  action: string;
-
-  /**
-   * Discord user ID who triggered the action
-   */
-  triggeredBy: string;
-
-  /**
-   * Additional context about the action
-   */
-  details?: string;
-
-  /**
-   * Whether the action succeeded
-   */
-  success: boolean;
-
-  /**
-   * ISO timestamp of when the action occurred
-   */
-  timestamp: string;
-}
-
-/**
- * Response from the backend when requesting a one-time login link
- */
-export interface OtlResponse {
-  /**
-   * Whether the OTL was successfully generated
-   */
-  success: boolean;
-
-  /**
-   * The one-time login URL to send to the user
-   */
-  url?: string;
-
-  /**
-   * Expiry duration in seconds
-   */
-  expiresIn?: number;
-
-  /**
-   * Error message if generation failed
-   */
-  message?: string;
-}
-
-/**
  * Bot notification service configuration
  */
 export interface BotNotificationConfig {
