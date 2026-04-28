@@ -1,5 +1,5 @@
 import { Telegraf } from 'telegraf';
-import { TransactionNotificationData } from './types';
+import { TransactionNotificationData, OtlResponse } from './types';
 import { createTrustlineOperation } from '@chen-pilot/sdk-core';
 
 export class TelegramAdapter {
@@ -20,7 +20,39 @@ export class TelegramAdapter {
     this.bot = new Telegraf(this.token);
 
     this.bot.start((ctx) => ctx.reply('Welcome to Chen Pilot! I am your AI-powered Stellar DeFi assistant.'));
-    this.bot.help((ctx) => ctx.reply('Commands: /start, /balance, /swap, /trustline'));
+    this.bot.help((ctx) => ctx.reply('Commands: /start, /balance, /swap, /trustline, /login (DM only)'));
+
+    this.bot.command('login', async (ctx) => {
+      if (ctx.chat?.type !== 'private') {
+        return ctx.reply('🔒 This command can only be used in a private message (DM) with the bot.');
+      }
+      const userId = String(ctx.from?.id);
+      await ctx.reply('⏳ Generating your one-time login link...');
+      try {
+        const response = await fetch(
+          `${process.env.BACKEND_URL}/api/auth/otl`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, platform: 'telegram' }),
+          }
+        );
+        const data = (await response.json()) as OtlResponse;
+        if (data.success && data.url) {
+          const expiryNote = data.expiresIn
+            ? ` This link expires in ${data.expiresIn} seconds.`
+            : '';
+          await ctx.reply(
+            `🔐 <b>Your one-time login link:</b>\n${data.url}\n\n⚠️ Do not share this link with anyone.${expiryNote}`,
+            { parse_mode: 'HTML' }
+          );
+        } else {
+          await ctx.reply(`❌ Could not generate login link: ${data.message}`);
+        }
+      } catch (error) {
+        await ctx.reply('❌ Could not reach the authentication service. Please try again later.');
+      }
+    });
 
     this.bot.command('trustline', async (ctx) => {
       const args = ctx.message.text.split(' ').slice(1);
