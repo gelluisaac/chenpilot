@@ -1,6 +1,17 @@
-import { Client, GatewayIntentBits, Message, TextChannel } from 'discord.js';
-import { TransactionNotificationData } from './types';
+import { Client, GatewayIntentBits, Message, TextChannel, ChannelType } from 'discord.js';
+import { TransactionNotificationData, QuestNotificationData } from './types';
 import { createTrustlineOperation } from '@chen-pilot/sdk-core';
+
+// Commands that involve personal account data and must only be used in DMs
+const DM_ONLY_COMMANDS = ['!balance', '!sponsor'];
+
+function isDM(message: Message): boolean {
+  return message.channel.type === ChannelType.DM;
+}
+
+async function rejectPublicChannel(message: Message): Promise<void> {
+  await message.reply('🔒 This command contains sensitive account data and can only be used in a Direct Message (DM) with the bot.');
+}
 
 export class DiscordAdapter {
   private client: Client;
@@ -39,6 +50,9 @@ export class DiscordAdapter {
       }
 
       if (message.content === "!sponsor") {
+        if (!isDM(message)) {
+          return rejectPublicChannel(message);
+        }
         const userId = message.author.id;
         await message.reply("⏳ Requesting account sponsorship...");
 
@@ -67,6 +81,35 @@ export class DiscordAdapter {
           console.error("Sponsor command error:", error);
           await message.reply(
             "❌ Could not reach the sponsorship service. Please try again later."
+          );
+        }
+      }
+
+      if (message.content === "!balance") {
+        if (!isDM(message)) {
+          return rejectPublicChannel(message);
+        }
+        const userId = message.author.id;
+        await message.reply("⏳ Fetching your balance...");
+        try {
+          const response = await fetch(
+            `${process.env.BACKEND_URL}/api/account/${userId}/balance`
+          );
+          const data = (await response.json()) as {
+            success: boolean;
+            message: string;
+            balances?: Array<{ asset: string; amount: string }>;
+          };
+          if (data.success && data.balances) {
+            const lines = data.balances.map((b) => `• ${b.amount} ${b.asset}`).join('\n');
+            await message.reply(`💰 **Your Balances:**\n${lines}`);
+          } else {
+            await message.reply(`❌ Could not fetch balance: ${data.message}`);
+          }
+        } catch (error) {
+          console.error("Balance command error:", error);
+          await message.reply(
+            "❌ Could not reach the balance service. Please try again later."
           );
         }
       }
@@ -206,5 +249,59 @@ export class DiscordAdapter {
    */
   getClient(): Client {
     return this.client;
+  }
+
+  /**
+   * Send a quest notification to a user
+   */
+  async sendQuestNotification(
+    userId: string,
+    data: QuestNotificationData
+  ): Promise<boolean> {
+    if (!this.client || !this.client.user) {
+      console.warn("⚠️ Discord bot not initialized");
+      return false;
+    }
+
+    const channelId = this.userChannels.get(userId);
+    if (!channelId) {
+      console.warn(`⚠️ No channel ID found for user ${userId}`);
+      return false;
+    }
+
+    const channel = this.client.channels.cache.get(channelId) as TextChannel;
+    if (!channel) {
+      console.warn(`⚠️ Channel ${channelId} not found`);
+      return false;
+    }
+
+    const message = this.formatQuestMessage(data);
+
+    try {
+      await channel.send(message);
+      return true;
+    } catch (error) {
+      console.error("Error sending Discord quest notification:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Format quest notification message
+   */
+  private formatQuestMessage(data: QuestNotificationData): string {
+    const expiry = new Date(data.expiresAt).toLocaleString();
+
+    let message = `🎯 **New Community Quest Available!**\n\n`;
+    message += `📌 **${data.title}**\n`;
+    message += `${data.description}\n\n`;
+    message += `🏆 **Reward:** ${data.reward}\n`;
+    message += `⏰ **Expires:** ${expiry}\n`;
+
+    if (data.url) {
+      message += `🔗 **Details:** ${data.url}\n`;
+    }
+
+    return message;
   }
 }
