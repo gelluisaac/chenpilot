@@ -2,6 +2,17 @@ import { Telegraf } from 'telegraf';
 import { TransactionNotificationData } from './types';
 import { createTrustlineOperation } from '@chen-pilot/sdk-core';
 
+// Commands that involve personal account data and must only be used in DMs
+const DM_ONLY_COMMANDS = ['/balance'];
+
+function isDM(ctx: Parameters<Parameters<Telegraf['command']>[1]>[0]): boolean {
+  return ctx.chat?.type === 'private';
+}
+
+async function rejectPublicChannel(ctx: Parameters<Parameters<Telegraf['command']>[1]>[0]): Promise<void> {
+  await ctx.reply('🔒 This command contains sensitive account data and can only be used in a private message (DM) with the bot.');
+}
+
 export class TelegramAdapter {
   private bot: Telegraf | undefined;
   private token: string;
@@ -20,7 +31,33 @@ export class TelegramAdapter {
     this.bot = new Telegraf(this.token);
 
     this.bot.start((ctx) => ctx.reply('Welcome to Chen Pilot! I am your AI-powered Stellar DeFi assistant.'));
-    this.bot.help((ctx) => ctx.reply('Commands: /start, /balance, /swap, /trustline'));
+    this.bot.help((ctx) => ctx.reply('Commands: /start, /balance (DM only), /swap, /trustline'));
+
+    this.bot.command('balance', async (ctx) => {
+      if (!isDM(ctx)) {
+        return rejectPublicChannel(ctx);
+      }
+      const userId = String(ctx.from?.id);
+      await ctx.reply('⏳ Fetching your balance...');
+      try {
+        const response = await fetch(
+          `${process.env.BACKEND_URL}/api/account/${userId}/balance`
+        );
+        const data = (await response.json()) as {
+          success: boolean;
+          message: string;
+          balances?: Array<{ asset: string; amount: string }>;
+        };
+        if (data.success && data.balances) {
+          const lines = data.balances.map((b) => `• ${b.amount} ${b.asset}`).join('\n');
+          await ctx.reply(`💰 <b>Your Balances:</b>\n${lines}`, { parse_mode: 'HTML' });
+        } else {
+          await ctx.reply(`❌ Could not fetch balance: ${data.message}`);
+        }
+      } catch (error) {
+        await ctx.reply('❌ Could not reach the balance service. Please try again later.');
+      }
+    });
 
     this.bot.command('trustline', async (ctx) => {
       const args = ctx.message.text.split(' ').slice(1);

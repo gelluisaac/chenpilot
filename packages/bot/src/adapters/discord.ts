@@ -1,6 +1,17 @@
-import { Client, GatewayIntentBits, Message, TextChannel } from 'discord.js';
+import { Client, GatewayIntentBits, Message, TextChannel, ChannelType } from 'discord.js';
 import { TransactionNotificationData } from './types';
 import { createTrustlineOperation } from '@chen-pilot/sdk-core';
+
+// Commands that involve personal account data and must only be used in DMs
+const DM_ONLY_COMMANDS = ['!balance', '!sponsor'];
+
+function isDM(message: Message): boolean {
+  return message.channel.type === ChannelType.DM;
+}
+
+async function rejectPublicChannel(message: Message): Promise<void> {
+  await message.reply('🔒 This command contains sensitive account data and can only be used in a Direct Message (DM) with the bot.');
+}
 
 export class DiscordAdapter {
   private client: Client;
@@ -39,6 +50,9 @@ export class DiscordAdapter {
       }
 
       if (message.content === "!sponsor") {
+        if (!isDM(message)) {
+          return rejectPublicChannel(message);
+        }
         const userId = message.author.id;
         await message.reply("⏳ Requesting account sponsorship...");
 
@@ -67,6 +81,35 @@ export class DiscordAdapter {
           console.error("Sponsor command error:", error);
           await message.reply(
             "❌ Could not reach the sponsorship service. Please try again later."
+          );
+        }
+      }
+
+      if (message.content === "!balance") {
+        if (!isDM(message)) {
+          return rejectPublicChannel(message);
+        }
+        const userId = message.author.id;
+        await message.reply("⏳ Fetching your balance...");
+        try {
+          const response = await fetch(
+            `${process.env.BACKEND_URL}/api/account/${userId}/balance`
+          );
+          const data = (await response.json()) as {
+            success: boolean;
+            message: string;
+            balances?: Array<{ asset: string; amount: string }>;
+          };
+          if (data.success && data.balances) {
+            const lines = data.balances.map((b) => `• ${b.amount} ${b.asset}`).join('\n');
+            await message.reply(`💰 **Your Balances:**\n${lines}`);
+          } else {
+            await message.reply(`❌ Could not fetch balance: ${data.message}`);
+          }
+        } catch (error) {
+          console.error("Balance command error:", error);
+          await message.reply(
+            "❌ Could not reach the balance service. Please try again later."
           );
         }
       }
