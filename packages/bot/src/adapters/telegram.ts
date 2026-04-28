@@ -7,6 +7,17 @@ import { AssetVerificationService } from '../assetVerification';
 const DASHBOARD_URL = process.env.DASHBOARD_URL || `${process.env.API_BASE_URL || 'http://localhost:2333'}/dashboard`;
 const HORIZON_URL = process.env.STELLAR_HORIZON_URL || 'https://horizon-testnet.stellar.org';
 
+// Commands that involve personal account data and must only be used in DMs
+const DM_ONLY_COMMANDS = ['/balance'];
+
+function isDM(ctx: Parameters<Parameters<Telegraf['command']>[1]>[0]): boolean {
+  return ctx.chat?.type === 'private';
+}
+
+async function rejectPublicChannel(ctx: Parameters<Parameters<Telegraf['command']>[1]>[0]): Promise<void> {
+  await ctx.reply('🔒 This command contains sensitive account data and can only be used in a private message (DM) with the bot.');
+}
+
 export class TelegramAdapter {
   private bot: Telegraf | undefined;
   private token: string;
