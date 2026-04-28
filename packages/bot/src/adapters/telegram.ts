@@ -122,6 +122,7 @@ export class TelegramAdapter {
       } catch (error) {
         await ctx.reply(`❌ Verification error: ${error instanceof Error ? error.message : String(error)}`);
       }
+      return next();
     });
     // Set bot commands for mobile menu
     await this.bot.telegram.setMyCommands([
