@@ -31,6 +31,17 @@ async function rejectPublicChannel(message: Message): Promise<void> {
   await message.reply('🔒 This command contains sensitive account data and can only be used in a Direct Message (DM) with the bot.');
 }
 
+// Commands that involve personal account data and must only be used in DMs
+const DM_ONLY_COMMANDS = ['!balance', '!sponsor'];
+
+function isDM(message: Message): boolean {
+  return message.channel.type === ChannelType.DM;
+}
+
+async function rejectPublicChannel(message: Message): Promise<void> {
+  await message.reply('🔒 This command contains sensitive account data and can only be used in a Direct Message (DM) with the bot.');
+}
+
 export class DiscordAdapter {
   private client: Client;
   private userChannels: Map<string, string> = new Map(); // userId -> channelId
