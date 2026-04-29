@@ -50,8 +50,9 @@ export class DiscordAdapter {
   private lastCommandTime: Map<string, number> = new Map();
   private verificationService: AssetVerificationService;
 
-  constructor(token: string) {
+  constructor(token: string, auditLogChannelId?: string) {
     this.token = token;
+    this.auditLogChannelId = auditLogChannelId || process.env.DISCORD_AUDIT_LOG_CHANNEL_ID;
     this.client = new Client({
       intents: [
         GatewayIntentBits.Guilds,
@@ -155,8 +156,22 @@ export class DiscordAdapter {
             await message.reply(
               `✅ Account sponsored successfully!\n📬 Address: \`${data.address}\``
             );
+            await this.logAuditAction({
+              action: 'SPONSOR_ACCOUNT',
+              triggeredBy: userId,
+              details: `Address: ${data.address}`,
+              success: true,
+              timestamp: new Date().toISOString(),
+            });
           } else {
             await message.reply(`❌ Sponsorship failed: ${data.message}`);
+            await this.logAuditAction({
+              action: 'SPONSOR_ACCOUNT',
+              triggeredBy: userId,
+              details: `Failed: ${data.message}`,
+              success: false,
+              timestamp: new Date().toISOString(),
+            });
           }
         } catch (error) {
           console.error("Sponsor command error:", error);
@@ -196,6 +211,13 @@ export class DiscordAdapter {
           response += `*Note: In a future update, I will provide a direct signing link.*`;
 
           await message.reply(response);
+          await this.logAuditAction({
+            action: 'TRUSTLINE_LOOKUP',
+            triggeredBy: message.author.id,
+            details: `Asset: ${assetCode}, Issuer: ${assetIssuer}`,
+            success: true,
+            timestamp: new Date().toISOString(),
+          });
         } catch (error) {
           await message.reply(
             `❌ Error: ${error instanceof Error ? error.message : String(error)}`
@@ -299,6 +321,13 @@ export class DiscordAdapter {
 
     try {
       await channel.send(message);
+      await this.logAuditAction({
+        action: 'SEND_TRANSACTION_NOTIFICATION',
+        triggeredBy: userId,
+        details: `Hash: ${data.hash.slice(0, 8)}...${data.hash.slice(-8)}, Success: ${data.successful}`,
+        success: true,
+        timestamp: new Date().toISOString(),
+      });
       return true;
     } catch (error) {
       console.error("Error sending Discord notification:", error);
