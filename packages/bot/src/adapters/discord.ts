@@ -32,7 +32,7 @@ async function rejectPublicChannel(message: Message): Promise<void> {
 }
 
 // Commands that involve personal account data and must only be used in DMs
-const DM_ONLY_COMMANDS = ['!balance', '!sponsor', '!login'];
+const DM_ONLY_COMMANDS = ['!balance', '!sponsor'];
 
 function isDM(message: Message): boolean {
   return message.channel.type === ChannelType.DM;
